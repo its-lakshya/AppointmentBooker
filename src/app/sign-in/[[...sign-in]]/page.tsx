@@ -3,7 +3,7 @@ import { SignIn } from '@clerk/nextjs'
 
 const SignInPage = () => {
   return (
-    <main className='px-4 py-8 flex justify-center items-center'>
+    <main className='h-screen px-4 py-8 flex justify-center items-center'>
       <SignIn />
     </main>
   )

@@ -31,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary-foreground`}
       >
         <ClerkProvider>
-          <Navbar />
+          {/* <Navbar /> */}
           <IdentifyWithPostHog />
           {children}
         </ClerkProvider>

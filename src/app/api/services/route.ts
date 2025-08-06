@@ -1,10 +1,10 @@
 import { createService, getServicesByProviderId } from "@/lib/db/services";
 import { getUserByClerkId } from "@/lib/db/users";
-import { getAuth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { userId } = getAuth(req);
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { name, description, duration, price, allow_addons } = body;
-
+  console.log(body)
   if (!name || !duration) {
     return NextResponse.json(
       { error: "Missing required fields" },
@@ -47,9 +47,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
-  const { userId } = getAuth(req);
-
+export async function GET() {
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

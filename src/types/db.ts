@@ -1,6 +1,6 @@
 export type AvailabilitySlot = {
   start: string; // ISO UTC string, e.g., "2025-08-08T05:30:00Z"
-  end: string;   // ISO UTC string
+  end: string; // ISO UTC string
 };
 
 export type AvailabilityCache = {
@@ -17,7 +17,7 @@ export type AvailabilityCache = {
 
 export type TimeSlot = {
   start: string; // UTC ISO string e.g., "2025-08-08T05:30:00Z"
-  end: string;   // UTC ISO string
+  end: string; // UTC ISO string
 };
 
 export type WorkingDayConfig = {
@@ -30,8 +30,30 @@ export type AvailabilityConfig = {
   workingHours: {
     [day: string]: WorkingDayConfig; // "monday", "tuesday", etc.
   };
-  startDate: string,
+  startDate: string;
   slotGapMinutes: number;
   maxBookingDaysInFuture: number;
   slotIntervalMinutes?: number; // optional: fallback to service duration if not provided
 };
+
+export type Service = {
+  allow_addons: boolean;
+  created_at: string;
+  description: string;
+  duration_minutes: number;
+  id: string;
+  name: string;
+  price: number;
+  provider_id: string;
+  updated_at: string;
+};
+
+export type ServiceResponse = {
+  success: boolean;
+  services: Service[];
+}
+
+export type ServiceCreateResponse = {
+  success: boolean;
+  service: Service;
+}
