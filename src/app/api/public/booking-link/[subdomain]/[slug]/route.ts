@@ -34,17 +34,26 @@ export async function GET(
   }
 
   // 3. Get related services
-  const { data: linkServices } = await supabase
+  const { data: serviceRow, error: serviceRowError } = await supabase
     .from("booking_link_services")
     .select("service_id")
-    .eq("booking_link_id", bookingLink.id);
+    .eq("booking_link_id", bookingLink.id)
+    .single();
 
-  const serviceIds = linkServices?.map((s) => s.service_id) || [];
+  if (serviceRowError || !serviceRow) {
+    return NextResponse.json({ error: "No service linked" }, { status: 404 });
+  }
 
-  const { data: services } = await supabase
+  // Step 2: Get the service details
+  const { data: service, error: serviceError } = await supabase
     .from("services")
     .select("*")
-    .in("id", serviceIds);
+    .eq("id", serviceRow.service_id)
+    .single(); // 👈 we expect only one row
+
+  if (serviceError || !service) {
+    return NextResponse.json({ error: "Service not found" }, { status: 404 });
+  }
 
   // 4. Get related staff
   const { data: linkStaff } = await supabase
@@ -62,7 +71,7 @@ export async function GET(
   return NextResponse.json({
     success: true,
     bookingLink,
-    services,
+    service,
     staff,
   });
 }

@@ -1,10 +1,15 @@
 "use client";
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
 import {
-    Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle
-} from '@/components/ui/card';
-import { Service } from '@/types/db';
-import { getDate } from '@/utils/dateTime/date';
+  Card,
+  CardAction,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Service } from "@/types/db";
+import { formatToReadableDate } from "@/utils/dateTime/dateTime";
 
 type ServicesListProps = {
   data: {
@@ -40,18 +45,13 @@ const ServicesList = ({ data }: ServicesListProps) => {
                   overflow: "hidden",
                 }}
               >
-                {service.description} Lorem ipsum dolor sit amet, consectetur
-                adipisicing elit. Vitae temporibus eius doloribus explicabo eos
-                sed mollitia quis, ab ullam similique possimus ratione magni
-                animi natus nam iusto ipsam quam. Quibusdam, hic? Quas
-                doloribus, culpa nostrum molestiae a voluptatem maiores
-                distinctio!
+                {service.description}
               </p>
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="flex gap-2 font-medium items-center">
-              {getDate(service.created_at)}
+              {formatToReadableDate(service.created_at)}
               <CardAction>
                 <Badge variant="outline">${service.price}</Badge>
               </CardAction>

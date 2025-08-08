@@ -3,7 +3,7 @@ export enum UserRole {
   Staff = "staff",
 }
 
-export enum BookingLink {
+export enum BookingLinkType {
   Individual = "individual",
   RoundRobin = "round_robin",
   Collective = "collective",

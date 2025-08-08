@@ -7,8 +7,6 @@ type MinimalAvailabilityConfig = {
     };
   };
   startDate: string,
-  bufferMinutesBefore: number;
-  bufferMinutesAfter: number;
   maxBookingDaysInFuture: number;
   slotIntervalMinutes?: number; // Optional (fallback to service duration)
 };
@@ -61,8 +59,6 @@ const availabilityConfig: MinimalAvailabilityConfig = {
     sunday: { enabled: false, slots: [] },
   },
   startDate: "25-08-06",
-  bufferMinutesBefore: 10,
-  bufferMinutesAfter: 5,
   maxBookingDaysInFuture: 30,
   slotIntervalMinutes: 30,
 };

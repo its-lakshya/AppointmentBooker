@@ -4,178 +4,6 @@ import { createBooking, checkBookingOverlap, validateBookingSlot, validateServic
 import { sendBookingConfirmationEmail } from '@/lib/email/sendBookingConfirmationEmail'
 import { removeBookedSlotFromCache } from '@/lib/db/availability_cache';
 
-  // export async function POST(
-  //   req: NextRequest,
-  //   context: { params: Promise<{ subdomain: string; slug: string }> }
-  // ) {
-  //   const supabase = createSupabaseAdminClient()
-  //   const body = await req.json()
-  //   const { subdomain, slug } = await context.params
-
-  //   const {
-  //     serviceId,
-  //     staffUserId,
-  //     clientName,
-  //     clientEmail,
-  //     clientPhone,
-  //     startTime,
-  //     endTime,
-  //     timezone,
-  //     price,
-  //     addonIds = [],
-  //     attendeeCount,
-  //     intakeData,
-  //     attendees,
-  //   } = body
-
-  //   if (!serviceId || !clientName || !clientEmail || !startTime || !endTime || !timezone) {
-  //     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-  //   }
-
-  //   if (attendeeCount && attendeeCount > 1) {
-  //     if (!Array.isArray(attendees) || attendees.length < attendeeCount - 1) {
-  //       return NextResponse.json({ error: 'Insufficient attendee information' }, { status: 400 })
-  //     }
-  //   }
-
-  //   const { data: provider, error: providerError } = await supabase
-  //     .from('providers')
-  //     .select('*')
-  //     .eq('subdomain', subdomain)
-  //     .maybeSingle()
-
-  //   if (providerError || !provider) {
-  //     return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
-  //   }
-
-  //   const { data: bookingLink, error: linkError } = await supabase
-  //     .from('booking_links')
-  //     .select('id, provider_id')
-  //     .eq('provider_id', provider.id)
-  //     .eq('slug', slug)
-  //     .maybeSingle()
-
-  //   if (linkError || !bookingLink) {
-  //     return NextResponse.json({ error: 'Booking link not found' }, { status: 404 })
-  //   }
-
-  //     let finalStaffUserId = staffUserId;
-
-  //   if (!finalStaffUserId) {
-  //     const { data: linkStaff, error } = await supabase
-  //       .from("booking_link_staff")
-  //       .select("user_id")
-  //       .eq("booking_link_id", bookingLink.id);
-
-  //     if (linkStaff && linkStaff.length > 0) {
-  //       finalStaffUserId = linkStaff[0].user_id;
-  //     } else {
-  //       return NextResponse.json(
-  //         { error: "No staff assigned to this booking link" },
-  //         { status: 400 }
-  //       );
-  //     }
-  //   }
-
-  //   // Validate service & staff
-  //   const { valid, reason } = await validateServiceAndStaff(
-  //     provider.id,
-  //     serviceId,
-  //     finalStaffUserId
-  //   );
-
-  //   if (!valid) {
-  //     return NextResponse.json({ error: reason }, { status: 400 });
-  //   }
-
-  //   // Validate slot
-  //   const slotCheck = await validateBookingSlot(bookingLink.id, startTime, endTime)
-  //   if (!slotCheck.valid) {
-  //     return NextResponse.json({ error: slotCheck.reason }, { status: 400 })
-  //   }
-
-  //   // Check overlap for staff
-  //   if (staffUserId) {
-  //     const overlapCheck = await checkBookingOverlap(provider.id, staffUserId, startTime, endTime)
-  //     if (!overlapCheck.valid) {
-  //       return NextResponse.json({ error: overlapCheck.reason }, { status: 400 })
-  //     }
-  //   }
-
-  //   // Validate service and staff ownership
-  //   const ownershipCheck = await validateServiceAndStaff(provider.id, serviceId, staffUserId)
-  //   if (!ownershipCheck.valid) {
-  //     return NextResponse.json({ error: ownershipCheck.reason }, { status: 400 })
-  //   }
-
-  //   // ✅ Validate addonIds (if passed)
-  //   if (addonIds && addonIds.length > 0) {
-  //     const { data: validAddons, error: addonError } = await supabase
-  //       .from('addons')
-  //       .select('id')
-  //       .eq('service_id', serviceId)
-
-  //     if (addonError) {
-  //       return NextResponse.json({ error: 'Failed to validate addons' }, { status: 500 })
-  //     }
-
-  //     const validAddonIds = validAddons.map(a => a.id)
-  //     const invalidAddons = addonIds.filter((id: string) => !validAddonIds.includes(id))
-
-  //     if (invalidAddons.length > 0) {
-  //       return NextResponse.json({ error: 'One or more selected addons are invalid' }, { status: 400 })
-  //     }
-  //   }
-
-  //   // Create booking
-  //   const { booking, error: bookingError } = await createBooking({
-  //     providerId: provider.id,
-  //     bookingLinkId: bookingLink.id,
-  //     serviceId,
-  //     staffUserId,
-  //     clientName,
-  //     clientEmail,
-  //     clientPhone,
-  //     startTime,
-  //     endTime,
-  //     timezone,
-  //     price,
-  //     addonIds,
-  //     attendeeCount,
-  //     intakeData,
-  //     attendees,
-  //   })
-
-  //   if (bookingError) {
-  //     console.error('Booking creation error:', bookingError)
-  //     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 })
-  //   }
-
-  //   console.info(`✅ Booking created for ${clientEmail} at ${startTime} - ${endTime}`)
-
-  //   try {
-  //     const { data: serviceData } = await supabase
-  //       .from('services')
-  //       .select('name')
-  //       .eq('id', serviceId)
-  //       .maybeSingle()
-
-  //     await sendBookingConfirmationEmail({
-  //       to: clientEmail,
-  //       clientName,
-  //       serviceName: serviceData?.name || 'your service',
-  //       providerName: provider?.name || 'your provider',
-  //       startTime,
-  //       endTime,
-  //       timezone,
-  //     })
-  //   } catch (e) {
-  //     console.error('⚠️ Failed to send confirmation email:', e)
-  //   }
-
-  //   return NextResponse.json({ success: true, bookingId: booking.id })
-  // }
-
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ subdomain: string; slug: string }> }
@@ -228,7 +56,7 @@ export async function POST(
   // 🔗 Fetch booking link
   const { data: bookingLink, error: linkError } = await supabase
     .from("booking_links")
-    .select("id, provider_id")
+    .select("id, provider_id, name")
     .eq("provider_id", provider.id)
     .eq("slug", slug)
     .maybeSingle();
@@ -336,17 +164,13 @@ export async function POST(
 
   // 📧 Send confirmation email
   try {
-    const { data: serviceData } = await supabase
-      .from("services")
-      .select("name")
-      .eq("id", serviceId)
-      .maybeSingle();
 
     await sendBookingConfirmationEmail({
       to: clientEmail,
       clientName,
-      serviceName: serviceData?.name || "your service",
-      providerName: provider.name || "your provider",
+      bookingLinkName: bookingLink?.name,
+      providerName: provider.name,
+      link: `${process.env.NEXT_PUBLIC_APP_URL}/api/public/booking/${booking.id}`,
       startTime,
       endTime,
       timezone,

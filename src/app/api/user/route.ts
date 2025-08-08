@@ -1,11 +1,11 @@
 // /api/user/route.ts
 import { getUserByClerkId, updateUser, deleteUser } from "@/lib/db/users";
-import { getAuth } from "@clerk/nextjs/server";
+import { auth, getAuth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/user
-export async function GET(req: NextRequest) {
-  const { userId } = getAuth(req);
+export async function GET() {
+  const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {

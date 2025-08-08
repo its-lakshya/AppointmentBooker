@@ -1,11 +1,15 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
-import { sendBookingRescheduleEmail } from '@/lib/email/sendBookingRescheduleEmail';
+import { sendBookingRescheduleEmail } from "@/lib/email/sendBookingRescheduleEmail";
 
-import { sendBookingCancellationEmail } from '../email/sendBookingCancellationEmail';
-import { createSupabaseAdminClient } from '../supabase/supabase';
-import { BookingStatus, PaymentStatus } from '@/types/enums';
-import { addSlotToAvailabilityCache, insertAvailabilityCache, removeBookedSlotFromCache } from './availability_cache';
+import { BookingStatus, PaymentStatus } from "@/types/enums";
+import { sendBookingCancellationEmail } from "../email/sendBookingCancellationEmail";
+import { createSupabaseAdminClient } from "../supabase/supabase";
+import {
+  addSlotToAvailabilityCache,
+  removeBookedSlotFromCache,
+} from "./availability_cache";
+import { NextResponse } from "next/server";
 
 type AttendeeInput = {
   full_name: string;
@@ -26,8 +30,8 @@ type CreateBookingInput = {
   startTime: string;
   endTime: string;
   timezone: string;
-  status: BookingStatus,
-  paymentStatus: PaymentStatus,
+  status: BookingStatus;
+  paymentStatus: PaymentStatus;
   price?: number;
   attendeeCount?: number;
   // eslint-disable-next-line
@@ -108,51 +112,6 @@ export async function createBooking(input: CreateBookingInput) {
   return { booking, error: null };
 }
 
-// export async function validateBookingSlot(
-//   bookingLinkId: string,
-//   startTime: string,
-//   endTime: string
-// ) {
-//   const supabase = createSupabaseAdminClient();
-//   const date = startTime.split("T")[0];
-//   console.log(startTime, endTime, date)
-
-//   const { data: cache, error } = await supabase
-//     .from("availability_cache")
-//     .select("slots")
-//     .eq("booking_link_id", bookingLinkId)
-//     .eq("start_date", date)
-//     .maybeSingle();
-
-//   if (error || !cache) {
-//     return {
-//       valid: false,
-//       reason: "No availability cache found for this date",
-//     };
-//   }
-
-//   const slots: string[] = cache.slots;
-//   const slotSet = new Set(slots);
-
-//   const current = new Date(startTime);
-//   const end = new Date(endTime);
-//   const durationMinutes = (end.getTime() - current.getTime()) / 60000;
-
-//   const expectedSlotCount = durationMinutes / 30;
-//   const slotTimes: string[] = [];
-
-//   for (let i = 0; i < expectedSlotCount; i++) {
-//     slotTimes.push(new Date(current.getTime() + i * 30 * 60000).toISOString());
-//   }
-
-//   const allSlotsAvailable = slotTimes.every((s) => slotSet.has(s));
-
-//   return {
-//     valid: allSlotsAvailable,
-//     reason: allSlotsAvailable ? null : "Selected time slot is not available",
-//   };
-// }
-
 export async function validateBookingSlot(
   bookingLinkId: string,
   startTime: string,
@@ -186,7 +145,6 @@ export async function validateBookingSlot(
     reason: slotExists ? null : "Selected time slot is not available",
   };
 }
-
 
 export async function checkBookingOverlap(
   providerId: string,
@@ -252,7 +210,6 @@ export async function validateServiceAndStaff(
         : null,
   };
 }
-
 
 // export async function rescheduleBookingByToken(
 //   token: string,
@@ -324,7 +281,6 @@ export async function validateServiceAndStaff(
 //   return { success: true, bookingId: booking.id };
 // }
 
-
 export async function rescheduleBookingByToken(
   token: string,
   newStartTime: string,
@@ -378,14 +334,14 @@ export async function rescheduleBookingByToken(
     return { success: false, error: "Failed to update booking" };
   }
 
-    // Remove newly booked slot from cache
+  // Remove newly booked slot from cache
   await removeBookedSlotFromCache({
     bookingLinkId: booking.booking_link_id,
     slotStart: newStartTime,
     slotEnd: newEndTime,
   });
 
-   // ✅ Add the old slot back to cache (since it's now free)
+  // ✅ Add the old slot back to cache (since it's now free)
   await addSlotToAvailabilityCache({
     bookingLinkId: booking.booking_link_id,
     date: oldStartTime.split("T")[0],
@@ -428,10 +384,13 @@ export async function cancelBookingByToken(token: string) {
     return { success: false, error: "Invalid or expired cancel token" };
   }
 
-  const cancellationCutoffHours = booking.booking_links?.cancellation_cutoff_hours ?? 0;
+  const cancellationCutoffHours =
+    booking.booking_links?.cancellation_cutoff_hours ?? 0;
 
   const bookingStart = new Date(booking.start_time);
-  const cutoffTime = new Date(bookingStart.getTime() - cancellationCutoffHours * 60 * 60 * 1000);
+  const cutoffTime = new Date(
+    bookingStart.getTime() - cancellationCutoffHours * 60 * 60 * 1000
+  );
 
   if (new Date() > cutoffTime) {
     return {
@@ -479,15 +438,13 @@ export async function cancelBookingByToken(token: string) {
   return { success: true, bookingId: booking.id };
 }
 
-
 export async function getBookingById(id: string) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
-  .from("bookings")
-  .select("*")
-  .eq(`id`, id)
-  .maybeSingle();
-
+    .from("bookings")
+    .select("*")
+    .eq(`id`, id)
+    .maybeSingle();
 
   if (error || !data) {
     return null;
@@ -495,3 +452,31 @@ export async function getBookingById(id: string) {
 
   return data;
 }
+
+export const getBookingByStaffClerkId = async (userId: string) => {
+  const supabase = createSupabaseAdminClient();
+
+  // Get internal user ID from clerk_user_id
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('clerk_user_id', userId)
+    .single(); // Because you're expecting only one match
+
+  if (userError || !userData) {
+    return { bookings: [], error: userError || new Error("User not found") };
+  }
+
+  // Fetch bookings for the staff user
+  const { data: bookings, error: bookingError } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('staff_user_id', userData.id);
+
+  if (bookingError || !bookings) {
+    return { bookings: [], error: bookingError };
+  }
+
+  return { bookings, error: null };
+};
+

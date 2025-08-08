@@ -5,14 +5,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (
   req: NextRequest,
-  context: { params: Promise<{ token: string }> }
+  context: { params: Promise<{ id: string }> }
 ) => {
-  const { token } = await context.params;
+  const { id } = await context.params;
+  console.log(id)
 
-  const booking = await getBookingById(token);
+  const booking = await getBookingById(id);
 
   if (!booking) {
-    return NextResponse.json({ error: "Invalid or expired token" }, { status: 404 });
+    return NextResponse.json({ error: "Invalid or expired id" }, { status: 404 });
   }
 
   return NextResponse.json({ booking });

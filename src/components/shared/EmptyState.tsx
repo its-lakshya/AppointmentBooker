@@ -1,5 +1,5 @@
 'use client'
-import { FolderPlus, LucideIcon } from "lucide-react"
+import { FolderPlus, LucideIcon, Plus } from "lucide-react"
 import React from "react"
 import { Button } from "../ui/button"
 
@@ -24,7 +24,7 @@ const EmptyState = ({ icon: Icon, title, message, className = "", buttonText, on
         <p className="text-muted-foreground mb-4">{message}</p>
 
         {buttonText && onClick && (
-          <Button onClick={onClick}>{buttonText}</Button>
+          <Button onClick={onClick}><Plus />{buttonText}</Button>
         )}
       </div>
     </div>
