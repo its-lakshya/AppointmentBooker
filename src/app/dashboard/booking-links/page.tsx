@@ -1,4 +1,3 @@
-import AddBookingLinkButton from "@/components/dashboard/bookingLInks/AddBookingLinkButton";
 import BookingLinksList from "@/components/dashboard/bookingLInks/BookingLinksManagement";
 import EmptyBookingLinks from "@/components/dashboard/bookingLInks/EmptyBookingLinks";
 import { BookingLinksResponse } from "@/types/db";
